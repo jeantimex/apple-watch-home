@@ -11,6 +11,21 @@ const config = {
   spacing: 250 // Fixed spacing between circles in pixels
 };
 
+// Variables for tracking mouse position and dragging state
+const mouse = {
+  x: 0,
+  y: 0,
+  lastX: 0,
+  lastY: 0,
+  isDragging: false
+};
+
+// Offset for the entire grid (will be updated when dragging)
+const offset = {
+  x: 0,
+  y: 0
+};
+
 // Function to resize canvas
 function resizeCanvas() {
   // Get the device pixel ratio
@@ -39,9 +54,9 @@ function drawCircles() {
   const gridWidth = (config.columns - 1) * config.spacing;
   const gridHeight = (config.rows - 1) * config.spacing;
   
-  // Calculate the starting position to center the grid
-  const startX = (canvas.width / (window.devicePixelRatio || 1) - gridWidth) / 2;
-  const startY = (canvas.height / (window.devicePixelRatio || 1) - gridHeight) / 2;
+  // Calculate the starting position to center the grid, including the offset from dragging
+  const startX = (canvas.width / (window.devicePixelRatio || 1) - gridWidth) / 2 + offset.x;
+  const startY = (canvas.height / (window.devicePixelRatio || 1) - gridHeight) / 2 + offset.y;
   
   // Find the middle row (0-indexed)
   const middleRow = Math.floor(config.rows / 2);
@@ -74,10 +89,103 @@ function drawCircles() {
   }
 }
 
+// Mouse event handlers
+function handleMouseDown(e) {
+  mouse.isDragging = true;
+  
+  // Get the mouse position relative to the canvas
+  const rect = canvas.getBoundingClientRect();
+  mouse.lastX = e.clientX - rect.left;
+  mouse.lastY = e.clientY - rect.top;
+}
+
+function handleMouseMove(e) {
+  if (!mouse.isDragging) return;
+  
+  // Get the current mouse position
+  const rect = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - rect.left;
+  mouse.y = e.clientY - rect.top;
+  
+  // Calculate the distance moved
+  const dx = mouse.x - mouse.lastX;
+  const dy = mouse.y - mouse.lastY;
+  
+  // Update the offset
+  offset.x += dx;
+  offset.y += dy;
+  
+  // Update the last position
+  mouse.lastX = mouse.x;
+  mouse.lastY = mouse.y;
+  
+  // Redraw the circles with the new offset
+  drawCircles();
+}
+
+function handleMouseUp() {
+  mouse.isDragging = false;
+}
+
+// Touch event handlers for mobile devices
+function handleTouchStart(e) {
+  if (e.touches.length === 1) {
+    e.preventDefault();
+    
+    // Get the touch position relative to the canvas
+    const rect = canvas.getBoundingClientRect();
+    mouse.lastX = e.touches[0].clientX - rect.left;
+    mouse.lastY = e.touches[0].clientY - rect.top;
+    mouse.isDragging = true;
+  }
+}
+
+function handleTouchMove(e) {
+  if (e.touches.length === 1 && mouse.isDragging) {
+    e.preventDefault();
+    
+    // Get the current touch position
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.touches[0].clientX - rect.left;
+    mouse.y = e.touches[0].clientY - rect.top;
+    
+    // Calculate the distance moved
+    const dx = mouse.x - mouse.lastX;
+    const dy = mouse.y - mouse.lastY;
+    
+    // Update the offset
+    offset.x += dx;
+    offset.y += dy;
+    
+    // Update the last position
+    mouse.lastX = mouse.x;
+    mouse.lastY = mouse.y;
+    
+    // Redraw the circles with the new offset
+    drawCircles();
+  }
+}
+
+function handleTouchEnd() {
+  mouse.isDragging = false;
+}
+
 // Initial resize
 resizeCanvas();
 
-// Add event listener for window resize
+// Add event listeners
 window.addEventListener('resize', resizeCanvas);
 
-console.log('Canvas initialized with staggered grid of red circles with fixed spacing');
+// Mouse events
+canvas.addEventListener('mousedown', handleMouseDown);
+canvas.addEventListener('mousemove', handleMouseMove);
+canvas.addEventListener('mouseup', handleMouseUp);
+canvas.addEventListener('mouseleave', handleMouseUp); // Stop dragging if mouse leaves the canvas
+
+// Touch events
+canvas.addEventListener('touchstart', handleTouchStart);
+canvas.addEventListener('touchmove', handleTouchMove);
+canvas.addEventListener('touchend', handleTouchEnd);
+canvas.addEventListener('touchcancel', handleTouchEnd);
+
+console.log('Canvas initialized with staggered grid of red circles with fixed spacing and dragging enabled');
