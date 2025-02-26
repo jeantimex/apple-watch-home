@@ -43,11 +43,25 @@ function drawCircles() {
   const startX = (canvas.width / (window.devicePixelRatio || 1) - gridWidth) / 2;
   const startY = (canvas.height / (window.devicePixelRatio || 1) - gridHeight) / 2;
   
+  // Find the middle row (0-indexed)
+  const middleRow = Math.floor(config.rows / 2);
+  
   // Draw each circle
   for (let row = 0; row < config.rows; row++) {
+    // Determine if this row should be shifted (odd rows relative to middle row)
+    const isRowShifted = (row % 2) !== (middleRow % 2);
+    
+    // Calculate the horizontal shift for staggered rows
+    const shiftX = isRowShifted ? -config.spacing / 2 : 0;
+    
     for (let col = 0; col < config.columns; col++) {
+      // Skip drawing extra circles that would appear off-grid in shifted rows
+      if (isRowShifted && col === config.columns - 1) {
+        continue; // Skip the last column for shifted rows
+      }
+      
       // Calculate the position of each circle with fixed spacing
-      const x = startX + col * config.spacing;
+      const x = startX + col * config.spacing + shiftX;
       const y = startY + row * config.spacing;
       
       // Draw the circle
@@ -66,4 +80,4 @@ resizeCanvas();
 // Add event listener for window resize
 window.addEventListener('resize', resizeCanvas);
 
-console.log('Canvas initialized with 6x6 grid of red circles with fixed spacing');
+console.log('Canvas initialized with staggered grid of red circles with fixed spacing');
