@@ -4,8 +4,8 @@ const ctx = canvas.getContext('2d');
 
 // Configuration for the grid
 const config = {
-  rows: 7,
-  columns: 7,
+  rows: 5,
+  columns: 5,
   radius: 100, // Increased radius but smaller than half the spacing
   color: '#FF0000', // Fixed red color for all circles
   spacing: 250 // Fixed spacing between circles in pixels
@@ -67,7 +67,7 @@ function drawCircles() {
     const isRowShifted = (row % 2) !== (middleRow % 2);
     
     // Calculate the horizontal shift for staggered rows
-    const shiftX = isRowShifted ? -config.spacing / 2 : 0;
+    const shiftX = isRowShifted ? config.spacing / 2 : 0;
     
     for (let col = 0; col < config.columns; col++) {
       // Skip drawing extra circles that would appear off-grid in shifted rows
